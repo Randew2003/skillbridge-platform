@@ -18,6 +18,16 @@ spring:
           predicates:
             - Path=/api/users/**
 
+        - id: project-service-projects
+          uri: lb://PROJECT-SERVICE
+          predicates:
+            - Path=/api/projects/**
+
+        - id: project-service-applications
+          uri: lb://PROJECT-SERVICE
+          predicates:
+            - Path=/api/project-applications/**
+
 eureka:
   client:
     service-url:
