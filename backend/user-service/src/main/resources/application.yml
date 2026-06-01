@@ -25,3 +25,7 @@ eureka:
 
   instance:
     prefer-ip-address: true
+
+jwt:
+  secret: skillbridge-super-secret-jwt-key-for-development-2026-change-later
+  expiration: 86400000
