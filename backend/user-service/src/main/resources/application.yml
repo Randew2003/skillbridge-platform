@@ -8,7 +8,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/skillbridge_user_db
     username: postgres
-    password: your_postgres_password
+    password: 1234
 
   jpa:
     hibernate:
