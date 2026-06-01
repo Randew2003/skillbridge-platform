@@ -6,16 +6,18 @@ import com.skillbridge.userservice.exception.ResourceNotFoundException;
 import com.skillbridge.userservice.mapper.UserMapper;
 import com.skillbridge.userservice.repository.UserRepository;
 import com.skillbridge.userservice.service.UserService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+
+    public UserServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     public UserResponse getUserById(Long id) {
