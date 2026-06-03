@@ -1,0 +1,18 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: notification-service
+
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/skillbridge_notification_db
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+  instance:
+    prefer-ip-address: true
