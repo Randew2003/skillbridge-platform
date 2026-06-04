@@ -9,6 +9,12 @@ spring:
     mongodb:
       uri: mongodb://localhost:27017/skillbridge_notification_db
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
 eureka:
   client:
     service-url:
