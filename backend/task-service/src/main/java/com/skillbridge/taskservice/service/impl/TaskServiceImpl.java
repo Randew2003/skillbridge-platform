@@ -5,6 +5,8 @@ import com.skillbridge.taskservice.dto.response.TaskResponse;
 import com.skillbridge.taskservice.entity.Task;
 import com.skillbridge.taskservice.entity.TaskPriority;
 import com.skillbridge.taskservice.entity.TaskStatus;
+import com.skillbridge.taskservice.event.NotificationEvent;
+import com.skillbridge.taskservice.event.TaskEventProducer;
 import com.skillbridge.taskservice.exception.ResourceNotFoundException;
 import com.skillbridge.taskservice.mapper.TaskMapper;
 import com.skillbridge.taskservice.repository.TaskRepository;
@@ -18,27 +20,40 @@ import java.util.List;
 public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
+    private final TaskEventProducer taskEventProducer;
 
-    public TaskServiceImpl(TaskRepository taskRepository) {
+    public TaskServiceImpl(TaskRepository taskRepository,
+                           TaskEventProducer taskEventProducer) {
         this.taskRepository = taskRepository;
+        this.taskEventProducer = taskEventProducer;
     }
 
     @Override
     public TaskResponse createTask(TaskRequest request) {
-        Task task = Task.builder()
-                .title(request.getTitle())
-                .description(request.getDescription())
-                .projectId(request.getProjectId())
-                .assignedToUserId(request.getAssignedToUserId())
-                .createdByUserId(request.getCreatedByUserId())
-                .status(TaskStatus.TODO)
-                .priority(parsePriority(request.getPriority()))
-                .dueDate(request.getDueDate())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+        Task task = new Task();
+
+        task.setTitle(request.getTitle());
+        task.setDescription(request.getDescription());
+        task.setProjectId(request.getProjectId());
+        task.setAssignedToUserId(request.getAssignedToUserId());
+        task.setCreatedByUserId(request.getCreatedByUserId());
+        task.setStatus(TaskStatus.TODO);
+        task.setPriority(parsePriority(request.getPriority()));
+        task.setDueDate(request.getDueDate());
+        task.setCreatedAt(LocalDateTime.now());
+        task.setUpdatedAt(LocalDateTime.now());
 
         Task savedTask = taskRepository.save(task);
+
+        taskEventProducer.sendTaskNotification(
+                new NotificationEvent(
+                        savedTask.getAssignedToUserId(),
+                        "New Task Assigned",
+                        "You have been assigned a new task: " + savedTask.getTitle(),
+                        "TASK_ASSIGNED"
+                )
+        );
+
         return TaskMapper.toTaskResponse(savedTask);
     }
 
@@ -89,6 +104,7 @@ public class TaskServiceImpl implements TaskService {
         task.setUpdatedAt(LocalDateTime.now());
 
         Task updatedTask = taskRepository.save(task);
+
         return TaskMapper.toTaskResponse(updatedTask);
     }
 
@@ -97,10 +113,22 @@ public class TaskServiceImpl implements TaskService {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + id));
 
-        task.setStatus(parseStatus(status));
+        TaskStatus newStatus = parseStatus(status);
+
+        task.setStatus(newStatus);
         task.setUpdatedAt(LocalDateTime.now());
 
         Task updatedTask = taskRepository.save(task);
+
+        taskEventProducer.sendTaskNotification(
+                new NotificationEvent(
+                        updatedTask.getAssignedToUserId(),
+                        "Task Status Updated",
+                        "Your task '" + updatedTask.getTitle() + "' status changed to " + updatedTask.getStatus(),
+                        "TASK_STATUS_UPDATED"
+                )
+        );
+
         return TaskMapper.toTaskResponse(updatedTask);
     }
 
@@ -120,20 +148,20 @@ public class TaskServiceImpl implements TaskService {
 
         try {
             return TaskPriority.valueOf(priority.toUpperCase());
-        } catch (IllegalArgumentException ex) {
-            throw new RuntimeException("Invalid task priority. Use LOW, MEDIUM, or HIGH");
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid priority. Use LOW, MEDIUM, or HIGH");
         }
     }
 
     private TaskStatus parseStatus(String status) {
         if (status == null || status.isBlank()) {
-            throw new RuntimeException("Task status is required");
+            throw new RuntimeException("Status is required");
         }
 
         try {
             return TaskStatus.valueOf(status.toUpperCase());
-        } catch (IllegalArgumentException ex) {
-            throw new RuntimeException("Invalid task status. Use TODO, IN_PROGRESS, or COMPLETED");
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid status. Use TODO, IN_PROGRESS, or COMPLETED");
         }
     }
 }
