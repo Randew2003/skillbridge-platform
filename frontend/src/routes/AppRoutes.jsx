@@ -2,6 +2,10 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import LoginPage from "../pages/auth/LoginPage";
 import RegisterPage from "../pages/auth/RegisterPage";
 import DashboardPage from "../pages/dashboard/DashboardPage";
+import ProjectsPage from "../pages/projects/ProjectsPage";
+import TasksPage from "../pages/tasks/TasksPage";
+import SkillsPage from "../pages/skills/SkillsPage";
+import NotificationsPage from "../pages/notifications/NotificationsPage";
 import ProtectedRoute from "./ProtectedRoute";
 
 const AppRoutes = () => {
@@ -19,6 +23,42 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/projects"
+          element={
+            <ProtectedRoute>
+              <ProjectsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/tasks"
+          element={
+            <ProtectedRoute>
+              <TasksPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/skills"
+          element={
+            <ProtectedRoute>
+              <SkillsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <NotificationsPage />
             </ProtectedRoute>
           }
         />
