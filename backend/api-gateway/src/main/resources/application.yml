@@ -7,6 +7,22 @@ spring:
 
   cloud:
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:5173"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+
       routes:
         - id: user-service-auth
           uri: lb://USER-SERVICE
@@ -32,7 +48,7 @@ spring:
           uri: lb://TASK-SERVICE
           predicates:
             - Path=/api/tasks/**
-        
+
         - id: skill-service-skills
           uri: lb://SKILL-SERVICE
           predicates:
