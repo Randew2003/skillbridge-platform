@@ -12,12 +12,15 @@ const AuthForm = ({
   onSubmit,
   buttonText,
   loading,
+  error,
   footer,
 }) => {
   return (
     <div className="min-h-screen bg-slate-950 px-4 py-10 text-slate-900">
       <div className="mx-auto flex min-h-[calc(100vh-80px)] max-w-6xl items-center justify-center">
         <div className="grid w-full items-center gap-10 lg:grid-cols-2">
+          
+          {/* Left side content */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -37,8 +40,26 @@ const AuthForm = ({
               projects, manage tasks, showcase skills, and receive real-time
               notifications.
             </p>
+
+            <div className="mt-8 grid max-w-xl grid-cols-3 gap-4">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-2xl font-bold">7+</p>
+                <p className="mt-1 text-xs text-slate-400">Microservices</p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-2xl font-bold">JWT</p>
+                <p className="mt-1 text-xs text-slate-400">Secure Auth</p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <p className="text-2xl font-bold">MQ</p>
+                <p className="mt-1 text-xs text-slate-400">Notifications</p>
+              </div>
+            </div>
           </motion.div>
 
+          {/* Form card */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -64,12 +85,22 @@ const AuthForm = ({
                   />
                 ))}
 
+                {error && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                    {error}
+                  </div>
+                )}
+
                 <Button type="submit" disabled={loading}>
                   {loading ? "Please wait..." : buttonText}
                 </Button>
               </form>
 
-              {footer && <div className="mt-6 text-center text-sm">{footer}</div>}
+              {footer && (
+                <div className="mt-6 text-center text-sm">
+                  {footer}
+                </div>
+              )}
             </Card>
           </motion.div>
         </div>
