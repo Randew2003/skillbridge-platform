@@ -1,11 +1,18 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+
 import LoginPage from "../pages/auth/LoginPage";
 import RegisterPage from "../pages/auth/RegisterPage";
+
 import DashboardPage from "../pages/dashboard/DashboardPage";
+
 import ProjectsPage from "../pages/projects/ProjectsPage";
+import CreateProjectPage from "../pages/projects/CreateProjectPage";
+import ProjectDetailsPage from "../pages/projects/ProjectDetailsPage";
+
 import TasksPage from "../pages/tasks/TasksPage";
 import SkillsPage from "../pages/skills/SkillsPage";
 import NotificationsPage from "../pages/notifications/NotificationsPage";
+
 import ProtectedRoute from "./ProtectedRoute";
 
 const AppRoutes = () => {
@@ -32,6 +39,24 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <ProjectsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/projects/create"
+          element={
+            <ProtectedRoute>
+              <CreateProjectPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/projects/:projectId"
+          element={
+            <ProtectedRoute>
+              <ProjectDetailsPage />
             </ProtectedRoute>
           }
         />
