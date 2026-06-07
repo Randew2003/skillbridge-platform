@@ -5,6 +5,8 @@ import DashboardLayout from "../../components/layout/DashboardLayout";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
+import PageHeader from "../../components/common/PageHeader";
+
 import { useSkills } from "../../features/skills/hooks/useSkills";
 
 const SkillsPage = () => {
@@ -63,12 +65,10 @@ const SkillsPage = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Skills</h1>
-          <p className="mt-2 text-slate-500">
-            Add your skills and search skill records across the platform.
-          </p>
-        </div>
+        <PageHeader
+          title="Skills"
+          description="Add your skills and search skill records across the platform."
+        />
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
@@ -120,9 +120,7 @@ const SkillsPage = () => {
               </h3>
 
               {!skillRecord ? (
-                <p className="text-sm text-slate-500">
-                  No skills added yet.
-                </p>
+                <p className="text-sm text-slate-500">No skills added yet.</p>
               ) : (
                 <div className="space-y-4">
                   <div className="flex flex-wrap gap-2">
