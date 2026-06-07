@@ -8,6 +8,7 @@ import {
   UserRound,
   LogOut,
   X,
+  Sparkles,
 } from "lucide-react";
 
 import { useAuth } from "../../features/auth/hooks/useAuth";
@@ -17,12 +18,12 @@ const Sidebar = ({ isOpen = false, onClose }) => {
   const { logout } = useAuth();
 
   const navItems = [
-    { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    { name: "Projects", path: "/projects", icon: FolderKanban },
-    { name: "Tasks", path: "/tasks", icon: CheckSquare },
-    { name: "Skills", path: "/skills", icon: Brain },
-    { name: "Notifications", path: "/notifications", icon: Bell },
-    { name: "Profile", path: "/profile", icon: UserRound },
+    { name: "Workspace", path: "/dashboard", icon: LayoutDashboard },
+    { name: "Project Hub", path: "/projects", icon: FolderKanban },
+    { name: "Task Board", path: "/tasks", icon: CheckSquare },
+    { name: "Skill Cloud", path: "/skills", icon: Brain },
+    { name: "Activity Feed", path: "/notifications", icon: Bell },
+    { name: "My Profile", path: "/profile", icon: UserRound },
   ];
 
   const handleLogout = () => {
@@ -34,15 +35,25 @@ const Sidebar = ({ isOpen = false, onClose }) => {
     <>
       <div className="mb-10 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">SkillBridge</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Student collaboration hub
-          </p>
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-violet-500 text-white shadow-lg shadow-cyan-500/20">
+              <Sparkles size={22} />
+            </div>
+
+            <div>
+              <h1 className="text-xl font-black tracking-tight text-white">
+                SkillBridge
+              </h1>
+              <p className="text-xs font-medium text-slate-400">
+                Build • Learn • Collab
+              </p>
+            </div>
+          </div>
         </div>
 
         <button
           onClick={onClose}
-          className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 lg:hidden"
+          className="rounded-xl p-2 text-slate-400 hover:bg-white/10 lg:hidden"
         >
           <X size={22} />
         </button>
@@ -58,22 +69,38 @@ const Sidebar = ({ isOpen = false, onClose }) => {
               key={item.path}
               to={item.path}
               onClick={onClose}
-              className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
+              className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
                 active
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  ? "bg-white text-slate-950 shadow-xl shadow-cyan-500/10"
+                  : "text-slate-400 hover:bg-white/10 hover:text-white"
               }`}
             >
-              <Icon size={20} />
+              <span
+                className={`flex h-9 w-9 items-center justify-center rounded-xl transition ${
+                  active
+                    ? "bg-gradient-to-br from-cyan-400 to-violet-500 text-white"
+                    : "bg-white/5 text-slate-400 group-hover:text-white"
+                }`}
+              >
+                <Icon size={18} />
+              </span>
+
               {item.name}
             </Link>
           );
         })}
       </nav>
 
+      <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-4">
+        <p className="text-sm font-bold text-white">SkillBridge Mode</p>
+        <p className="mt-1 text-xs leading-5 text-slate-400">
+          Microservices, RabbitMQ events, and React workspace UI.
+        </p>
+      </div>
+
       <button
         onClick={handleLogout}
-        className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
+        className="mt-4 flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-red-300 transition hover:bg-red-500/10 hover:text-red-200"
       >
         <LogOut size={20} />
         Logout
@@ -83,18 +110,15 @@ const Sidebar = ({ isOpen = false, onClose }) => {
 
   return (
     <>
-      <aside className="hidden h-screen w-72 border-r border-slate-200 bg-white px-5 py-6 lg:flex lg:flex-col">
+      <aside className="hidden h-screen w-76 border-r border-white/10 bg-slate-950 px-5 py-6 lg:flex lg:flex-col">
         {sidebarContent}
       </aside>
 
       {isOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            onClick={onClose}
-            className="absolute inset-0 bg-slate-900/50"
-          />
+          <div onClick={onClose} className="absolute inset-0 bg-slate-950/70" />
 
-          <aside className="relative z-10 flex h-full w-72 flex-col border-r border-slate-200 bg-white px-5 py-6 shadow-2xl">
+          <aside className="relative z-10 flex h-full w-76 flex-col border-r border-white/10 bg-slate-950 px-5 py-6 shadow-2xl">
             {sidebarContent}
           </aside>
         </div>
