@@ -2,6 +2,7 @@ import { Mail, Shield, UserRound } from "lucide-react";
 
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import Card from "../../components/ui/Card";
+import PageHeader from "../../components/common/PageHeader";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 
 const ProfilePage = () => {
@@ -10,12 +11,10 @@ const ProfilePage = () => {
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-4xl space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Profile</h1>
-          <p className="mt-2 text-slate-500">
-            View your SkillBridge account information.
-          </p>
-        </div>
+        <PageHeader
+          title="Profile"
+          description="View your SkillBridge account information."
+        />
 
         <Card>
           <div className="flex flex-col items-start gap-6 md:flex-row md:items-center">
@@ -64,7 +63,9 @@ const ProfilePage = () => {
 
           <div className="mt-5 space-y-4">
             <div className="flex justify-between rounded-2xl bg-slate-50 p-4">
-              <span className="text-sm font-medium text-slate-500">User ID</span>
+              <span className="text-sm font-medium text-slate-500">
+                User ID
+              </span>
               <span className="text-sm font-semibold text-slate-900">
                 {user?.id || "N/A"}
               </span>
