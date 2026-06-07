@@ -91,6 +91,16 @@ const AppRoutes = () => {
         />
 
         <Route
+          path="/notifications/:notificationId"
+          element={
+            <ProtectedRoute>
+              <NotificationsPage />
+            </ProtectedRoute>
+          }
+        />
+
+
+        <Route
           path="/profile"
           element={
             <ProtectedRoute>
