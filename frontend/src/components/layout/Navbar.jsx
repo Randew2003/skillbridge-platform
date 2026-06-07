@@ -1,8 +1,11 @@
 import { Bell, Search } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../features/auth/hooks/useAuth";
+import { useNotifications } from "../../features/notifications/hooks/useNotifications";
 
 const Navbar = () => {
   const { user } = useAuth();
+  const { unreadCount } = useNotifications();
 
   return (
     <header className="flex h-20 items-center justify-between border-b border-slate-200 bg-white px-6">
@@ -22,10 +25,18 @@ const Navbar = () => {
         />
       </div>
 
-      <button className="relative rounded-2xl border border-slate-200 p-3 text-slate-600 transition hover:bg-slate-50">
+      <Link
+        to="/notifications"
+        className="relative rounded-2xl border border-slate-200 p-3 text-slate-600 transition hover:bg-slate-50"
+      >
         <Bell size={20} />
-        <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
-      </button>
+
+        {unreadCount > 0 && (
+          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white">
+            {unreadCount}
+          </span>
+        )}
+      </Link>
     </header>
   );
 };
