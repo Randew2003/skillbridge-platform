@@ -13,6 +13,8 @@ import TasksPage from "../pages/tasks/TasksPage";
 import SkillsPage from "../pages/skills/SkillsPage";
 import NotificationsPage from "../pages/notifications/NotificationsPage";
 
+import ProfilePage from "../pages/profile/ProfilePage";
+
 import ProtectedRoute from "./ProtectedRoute";
 
 const AppRoutes = () => {
@@ -87,6 +89,17 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+
+
       </Routes>
     </BrowserRouter>
   );
