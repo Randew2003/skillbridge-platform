@@ -5,8 +5,10 @@ import {
   CheckSquare,
   Brain,
   Bell,
+  UserRound,
   LogOut,
 } from "lucide-react";
+
 import { useAuth } from "../../features/auth/hooks/useAuth";
 
 const Sidebar = () => {
@@ -39,13 +41,24 @@ const Sidebar = () => {
       path: "/notifications",
       icon: Bell,
     },
+    {
+      name: "Profile",
+      path: "/profile",
+      icon: UserRound,
+    },
   ];
+
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <aside className="hidden h-screen w-72 border-r border-slate-200 bg-white px-5 py-6 lg:flex lg:flex-col">
       <div className="mb-10">
         <h1 className="text-2xl font-bold text-slate-900">SkillBridge</h1>
-        <p className="mt-1 text-sm text-slate-500">Student collaboration hub</p>
+        <p className="mt-1 text-sm text-slate-500">
+          Student collaboration hub
+        </p>
       </div>
 
       <nav className="flex-1 space-y-2">
@@ -71,7 +84,7 @@ const Sidebar = () => {
       </nav>
 
       <button
-        onClick={logout}
+        onClick={handleLogout}
         className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
       >
         <LogOut size={20} />
