@@ -12,7 +12,6 @@ import ProjectDetailsPage from "../pages/projects/ProjectDetailsPage";
 import TasksPage from "../pages/tasks/TasksPage";
 import SkillsPage from "../pages/skills/SkillsPage";
 import NotificationsPage from "../pages/notifications/NotificationsPage";
-
 import ProfilePage from "../pages/profile/ProfilePage";
 
 import ProtectedRoute from "./ProtectedRoute";
@@ -99,7 +98,6 @@ const AppRoutes = () => {
           }
         />
 
-
         <Route
           path="/profile"
           element={
@@ -108,8 +106,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
-
       </Routes>
     </BrowserRouter>
   );

@@ -1,18 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell, Menu, Search, Sparkles, UserRound } from "lucide-react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { useNotifications } from "../../features/notifications/hooks/useNotifications";
 import NotificationDropdown from "./NotificationDropdown";
 
 const Navbar = ({ onMenuClick }) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const {
-    notifications,
-    unreadCount,
-    markAsRead,
-  } = useNotifications();
+  const { notifications, unreadCount, markAsRead } = useNotifications();
 
   const [notificationOpen, setNotificationOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -26,10 +23,7 @@ const Navbar = ({ onMenuClick }) => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setNotificationOpen(false);
       }
     };
@@ -44,8 +38,10 @@ const Navbar = ({ onMenuClick }) => {
   const handleNotificationClick = async (notificationId) => {
     try {
       await markAsRead(notificationId);
+      setNotificationOpen(false);
+      navigate(`/notifications/${notificationId}`);
     } catch (error) {
-      console.error("Failed to mark notification as read", error);
+      console.error("Failed to open notification", error);
     }
   };
 
