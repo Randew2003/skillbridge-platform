@@ -1,5 +1,10 @@
 import { Bell, CheckCircle, Trash2 } from "lucide-react";
+
 import DashboardLayout from "../../components/layout/DashboardLayout";
+import EmptyState from "../../components/common/EmptyState";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import PageHeader from "../../components/common/PageHeader";
+
 import { useNotifications } from "../../features/notifications/hooks/useNotifications";
 
 const NotificationsPage = () => {
@@ -14,33 +19,23 @@ const NotificationsPage = () => {
 
   const formatDate = (dateValue) => {
     if (!dateValue) return "Unknown date";
-
     return new Date(dateValue).toLocaleString();
   };
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">
-              Notifications
-            </h1>
-            <p className="mt-2 text-slate-500">
-              View your latest project and task notifications.
-            </p>
-          </div>
+        <PageHeader
+          title="Notifications"
+          description="View your latest project and task notifications."
+          action={
+            <div className="rounded-2xl border border-indigo-100 bg-indigo-50 px-5 py-3 text-sm font-semibold text-indigo-700">
+              {unreadCount} unread
+            </div>
+          }
+        />
 
-          <div className="rounded-2xl border border-indigo-100 bg-indigo-50 px-5 py-3 text-sm font-semibold text-indigo-700">
-            {unreadCount} unread
-          </div>
-        </div>
-
-        {loading && (
-          <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-slate-500">
-            Loading notifications...
-          </div>
-        )}
+        {loading && <LoadingSpinner message="Loading notifications..." />}
 
         {error && (
           <div className="rounded-3xl border border-red-200 bg-red-50 p-5 text-sm text-red-600">
@@ -49,19 +44,11 @@ const NotificationsPage = () => {
         )}
 
         {!loading && !error && notifications.length === 0 && (
-          <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
-              <Bell size={26} />
-            </div>
-
-            <h2 className="text-xl font-bold text-slate-900">
-              No notifications yet
-            </h2>
-
-            <p className="mt-2 text-slate-500">
-              New project and task updates will appear here.
-            </p>
-          </div>
+          <EmptyState
+            icon={Bell}
+            title="No notifications yet"
+            description="New project and task updates will appear here."
+          />
         )}
 
         {!loading && !error && notifications.length > 0 && (
@@ -108,6 +95,7 @@ const NotificationsPage = () => {
                         <span className="rounded-full bg-white px-3 py-1 font-medium">
                           {notification.type}
                         </span>
+
                         <span>{formatDate(notification.createdAt)}</span>
                       </div>
                     </div>
