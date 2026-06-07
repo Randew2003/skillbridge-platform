@@ -1,12 +1,21 @@
+import { useEffect, useRef, useState } from "react";
 import { Bell, Menu, Search, Sparkles, UserRound } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { useNotifications } from "../../features/notifications/hooks/useNotifications";
+import NotificationDropdown from "./NotificationDropdown";
 
 const Navbar = ({ onMenuClick }) => {
   const { user } = useAuth();
-  const { unreadCount } = useNotifications();
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+  } = useNotifications();
+
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const topLinks = [
     { name: "Explore", path: "/projects" },
@@ -14,6 +23,31 @@ const Navbar = ({ onMenuClick }) => {
     { name: "Tasks", path: "/tasks" },
     { name: "Skills", path: "/skills" },
   ];
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setNotificationOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleNotificationClick = async (notificationId) => {
+    try {
+      await markAsRead(notificationId);
+    } catch (error) {
+      console.error("Failed to mark notification as read", error);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/85 px-4 py-4 backdrop-blur-2xl md:px-6">
@@ -70,18 +104,30 @@ const Navbar = ({ onMenuClick }) => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link
-            to="/notifications"
-            className="relative rounded-2xl border border-slate-200 bg-white p-3 text-slate-700 shadow-sm transition hover:bg-slate-50"
-          >
-            <Bell size={20} />
+          <div ref={dropdownRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setNotificationOpen((prev) => !prev)}
+              className="relative rounded-2xl border border-slate-200 bg-white p-3 text-slate-700 shadow-sm transition hover:bg-slate-50"
+            >
+              <Bell size={20} />
 
-            {unreadCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-xs font-black text-white">
-                {unreadCount}
-              </span>
+              {unreadCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-xs font-black text-white">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {notificationOpen && (
+              <NotificationDropdown
+                notifications={notifications}
+                unreadCount={unreadCount}
+                onMarkAsRead={handleNotificationClick}
+                onClose={() => setNotificationOpen(false)}
+              />
             )}
-          </Link>
+          </div>
 
           <Link
             to="/profile"
