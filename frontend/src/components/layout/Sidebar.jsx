@@ -8,7 +8,6 @@ import {
   UserRound,
   LogOut,
   X,
-  Sparkles,
 } from "lucide-react";
 
 import { useAuth } from "../../features/auth/hooks/useAuth";
@@ -19,11 +18,11 @@ const Sidebar = ({ isOpen = false, onClose }) => {
 
   const navItems = [
     { name: "Workspace", path: "/dashboard", icon: LayoutDashboard },
-    { name: "Project Hub", path: "/projects", icon: FolderKanban },
-    { name: "Task Board", path: "/tasks", icon: CheckSquare },
-    { name: "Skill Cloud", path: "/skills", icon: Brain },
-    { name: "Activity Feed", path: "/notifications", icon: Bell },
-    { name: "My Profile", path: "/profile", icon: UserRound },
+    { name: "Explore", path: "/projects", icon: FolderKanban },
+    { name: "Board", path: "/tasks", icon: CheckSquare },
+    { name: "Skills", path: "/skills", icon: Brain },
+    { name: "Activity", path: "/notifications", icon: Bell },
+    { name: "Profile", path: "/profile", icon: UserRound },
   ];
 
   const handleLogout = () => {
@@ -31,95 +30,72 @@ const Sidebar = ({ isOpen = false, onClose }) => {
     if (onClose) onClose();
   };
 
-  const sidebarContent = (
+  const railContent = (
     <>
-      <div className="mb-10 flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-violet-500 text-white shadow-lg shadow-cyan-500/20">
-              <Sparkles size={22} />
-            </div>
-
-            <div>
-              <h1 className="text-xl font-black tracking-tight text-white">
-                SkillBridge
-              </h1>
-              <p className="text-xs font-medium text-slate-400">
-                Build • Learn • Collab
-              </p>
-            </div>
-          </div>
+      <div className="mb-8 flex items-center justify-between lg:justify-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-lg font-black text-white shadow-lg">
+          SB
         </div>
 
         <button
           onClick={onClose}
-          className="rounded-xl p-2 text-slate-400 hover:bg-white/10 lg:hidden"
+          className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 lg:hidden"
         >
           <X size={22} />
         </button>
       </div>
 
-      <nav className="flex-1 space-y-2">
+      <nav className="flex flex-1 flex-col items-center gap-3">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const active = location.pathname === item.path;
+          const active =
+            location.pathname === item.path ||
+            location.pathname.startsWith(`${item.path}/`);
 
           return (
             <Link
               key={item.path}
               to={item.path}
               onClick={onClose}
-              className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+              title={item.name}
+              className={`group relative flex h-12 w-12 items-center justify-center rounded-2xl transition ${
                 active
-                  ? "bg-white text-slate-950 shadow-xl shadow-cyan-500/10"
-                  : "text-slate-400 hover:bg-white/10 hover:text-white"
+                  ? "bg-slate-950 text-white shadow-lg shadow-slate-900/20"
+                  : "bg-white text-slate-500 hover:bg-slate-100 hover:text-slate-950"
               }`}
             >
-              <span
-                className={`flex h-9 w-9 items-center justify-center rounded-xl transition ${
-                  active
-                    ? "bg-gradient-to-br from-cyan-400 to-violet-500 text-white"
-                    : "bg-white/5 text-slate-400 group-hover:text-white"
-                }`}
-              >
-                <Icon size={18} />
-              </span>
+              <Icon size={21} />
 
-              {item.name}
+              <span className="pointer-events-none absolute left-16 hidden rounded-xl bg-slate-950 px-3 py-2 text-xs font-semibold text-white opacity-0 shadow-lg transition group-hover:opacity-100 lg:block">
+                {item.name}
+              </span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-4">
-        <p className="text-sm font-bold text-white">SkillBridge Mode</p>
-        <p className="mt-1 text-xs leading-5 text-slate-400">
-          Microservices, RabbitMQ events, and React workspace UI.
-        </p>
-      </div>
-
       <button
         onClick={handleLogout}
-        className="mt-4 flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-red-300 transition hover:bg-red-500/10 hover:text-red-200"
+        title="Logout"
+        className="mt-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-600 transition hover:bg-red-100"
       >
-        <LogOut size={20} />
-        Logout
+        <LogOut size={21} />
       </button>
     </>
   );
 
   return (
     <>
-      <aside className="hidden h-screen w-76 border-r border-white/10 bg-slate-950 px-5 py-6 lg:flex lg:flex-col">
-        {sidebarContent}
+      <aside className="hidden h-screen w-24 border-r border-slate-200 bg-white/80 px-4 py-5 backdrop-blur-xl lg:flex lg:flex-col">
+        {railContent}
       </aside>
 
       {isOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div onClick={onClose} className="absolute inset-0 bg-slate-950/70" />
+          <div onClick={onClose} className="absolute inset-0 bg-slate-950/60" />
 
-          <aside className="relative z-10 flex h-full w-76 flex-col border-r border-white/10 bg-slate-950 px-5 py-6 shadow-2xl">
-            {sidebarContent}
+          <aside className="relative z-10 flex h-full w-24 flex-col border-r border-slate-200 bg-white px-4 py-5 shadow-2xl">
+            {railContent}
           </aside>
         </div>
       )}
