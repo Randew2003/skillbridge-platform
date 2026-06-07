@@ -1,10 +1,14 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { CheckSquare, Plus } from "lucide-react";
 
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
+import EmptyState from "../../components/common/EmptyState";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import PageHeader from "../../components/common/PageHeader";
+
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import TaskCard from "../../features/tasks/components/TaskCard";
 import { useTasks } from "../../features/tasks/hooks/useTasks";
@@ -69,7 +73,8 @@ const TasksPage = () => {
       setShowForm(false);
     } catch (err) {
       setFormError(
-        err.response?.data?.message || "Failed to create task. Please try again."
+        err.response?.data?.message ||
+          "Failed to create task. Please try again."
       );
     }
   };
@@ -77,22 +82,19 @@ const TasksPage = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Tasks</h1>
-            <p className="mt-2 text-slate-500">
-              Create tasks, assign users, and update task status.
-            </p>
-          </div>
-
-          <button
-            onClick={() => setShowForm((prev) => !prev)}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700"
-          >
-            <Plus size={18} />
-            {showForm ? "Close Form" : "Create Task"}
-          </button>
-        </div>
+        <PageHeader
+          title="Tasks"
+          description="Create tasks, assign users, and update task status."
+          action={
+            <button
+              onClick={() => setShowForm((prev) => !prev)}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700"
+            >
+              <Plus size={18} />
+              {showForm ? "Close Form" : "Create Task"}
+            </button>
+          }
+        />
 
         {showForm && (
           <Card>
@@ -110,6 +112,7 @@ const TasksPage = () => {
                 <label className="text-sm font-medium text-slate-700">
                   Description
                 </label>
+
                 <textarea
                   name="description"
                   value={formData.description}
@@ -148,6 +151,7 @@ const TasksPage = () => {
                   <label className="text-sm font-medium text-slate-700">
                     Priority
                   </label>
+
                   <select
                     name="priority"
                     value={formData.priority}
@@ -183,11 +187,7 @@ const TasksPage = () => {
           </Card>
         )}
 
-        {loading && (
-          <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-slate-500">
-            Loading tasks...
-          </div>
-        )}
+        {loading && <LoadingSpinner message="Loading tasks..." />}
 
         {error && (
           <div className="rounded-3xl border border-red-200 bg-red-50 p-5 text-sm text-red-600">
@@ -196,12 +196,11 @@ const TasksPage = () => {
         )}
 
         {!loading && !error && tasks.length === 0 && (
-          <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center">
-            <h2 className="text-xl font-bold text-slate-900">No tasks found</h2>
-            <p className="mt-2 text-slate-500">
-              Create your first task to start tracking project work.
-            </p>
-          </div>
+          <EmptyState
+            icon={CheckSquare}
+            title="No tasks found"
+            description="Create your first task to start tracking project work."
+          />
         )}
 
         {!loading && !error && tasks.length > 0 && (
