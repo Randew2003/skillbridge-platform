@@ -38,4 +38,7 @@ public class User {
     private Role role;
 
     private LocalDateTime createdAt;
+
+    @Builder.Default
+    private Boolean active = true;
 }
