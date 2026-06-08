@@ -13,7 +13,8 @@ public class UserMapper {
                 .university(user.getUniversity())
                 .githubUrl(user.getGithubUrl())
                 .linkedinUrl(user.getLinkedinUrl())
-                .role(user.getRole().name())
+                .role(user.getRole())
+                .active(user.getActive())
                 .build();
     }
 }
