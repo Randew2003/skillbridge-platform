@@ -40,8 +40,11 @@ public class AuthServiceImpl implements AuthService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .university(request.getUniversity())
-                .role(Role.STUDENT)
+                .githubUrl(request.getGithubUrl())
+                .linkedinUrl(request.getLinkedinUrl())
+                .role(Role.USER)
                 .createdAt(LocalDateTime.now())
+                .active(true)
                 .build();
 
         User savedUser = userRepository.save(user);
@@ -50,7 +53,6 @@ public class AuthServiceImpl implements AuthService {
 
         return AuthResponse.builder()
                 .token(token)
-                .tokenType("Bearer")
                 .userId(savedUser.getId())
                 .fullName(savedUser.getFullName())
                 .email(savedUser.getEmail())
@@ -63,6 +65,10 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+
+        if (Boolean.FALSE.equals(user.getActive())) {
+            throw new RuntimeException("Account is deactivated");
+        }
 
         boolean passwordMatches = passwordEncoder.matches(
                 request.getPassword(),
@@ -77,7 +83,6 @@ public class AuthServiceImpl implements AuthService {
 
         return AuthResponse.builder()
                 .token(token)
-                .tokenType("Bearer")
                 .userId(user.getId())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
