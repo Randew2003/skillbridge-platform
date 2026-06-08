@@ -1,7 +1,9 @@
 package com.skillbridge.userservice.controller;
 
+import com.skillbridge.userservice.dto.request.UpdateProfileRequest;
 import com.skillbridge.userservice.dto.response.UserResponse;
 import com.skillbridge.userservice.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,19 +19,31 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.getUserById(id));
-    }
-
     @GetMapping
     public ResponseEntity<List<UserResponse>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
-        return ResponseEntity.ok("User deleted successfully");
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getUserById(id));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getMyProfile() {
+        return ResponseEntity.ok(userService.getMyProfile());
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UserResponse> updateMyProfile(
+            @Valid @RequestBody UpdateProfileRequest request
+    ) {
+        return ResponseEntity.ok(userService.updateMyProfile(request));
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<String> deleteMyAccount() {
+        userService.deleteMyAccount();
+        return ResponseEntity.ok("Account deactivated successfully");
     }
 }
