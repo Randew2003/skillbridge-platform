@@ -40,9 +40,7 @@ public class AuthServiceImpl implements AuthService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .university(request.getUniversity())
-                .githubUrl(request.getGithubUrl())
-                .linkedinUrl(request.getLinkedinUrl())
-                .role(Role.USER)
+                .role(Role.STUDENT)
                 .createdAt(LocalDateTime.now())
                 .active(true)
                 .build();
