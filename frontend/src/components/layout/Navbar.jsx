@@ -5,14 +5,18 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { useNotifications } from "../../features/notifications/hooks/useNotifications";
 import NotificationDropdown from "./NotificationDropdown";
+import UserDropdown from "./UserDropdown";
 
 const Navbar = ({ onMenuClick }) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { notifications, unreadCount, markAsRead } = useNotifications();
 
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  const notificationRef = useRef(null);
+  const userMenuRef = useRef(null);
 
   const topLinks = [
     { name: "Explore", path: "/projects" },
@@ -23,8 +27,18 @@ const Navbar = ({ onMenuClick }) => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target)
+      ) {
         setNotificationOpen(false);
+      }
+
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target)
+      ) {
+        setUserMenuOpen(false);
       }
     };
 
@@ -43,6 +57,11 @@ const Navbar = ({ onMenuClick }) => {
     } catch (error) {
       console.error("Failed to open notification", error);
     }
+  };
+
+  const handleLogout = () => {
+    setUserMenuOpen(false);
+    logout();
   };
 
   return (
@@ -100,10 +119,13 @@ const Navbar = ({ onMenuClick }) => {
         </div>
 
         <div className="flex items-center gap-3">
-          <div ref={dropdownRef} className="relative">
+          <div ref={notificationRef} className="relative">
             <button
               type="button"
-              onClick={() => setNotificationOpen((prev) => !prev)}
+              onClick={() => {
+                setNotificationOpen((prev) => !prev);
+                setUserMenuOpen(false);
+              }}
               className="relative rounded-2xl border border-slate-200 bg-white p-3 text-slate-700 shadow-sm transition hover:bg-slate-50"
             >
               <Bell size={20} />
@@ -125,21 +147,35 @@ const Navbar = ({ onMenuClick }) => {
             )}
           </div>
 
-          <Link
-            to="/profile"
-            className="hidden items-center gap-3 rounded-full border border-slate-200 bg-white px-3 py-2 shadow-sm transition hover:bg-slate-50 md:flex"
-          >
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-950 text-white">
-              <UserRound size={18} />
-            </div>
+          <div ref={userMenuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                setUserMenuOpen((prev) => !prev);
+                setNotificationOpen(false);
+              }}
+              className="hidden items-center gap-3 rounded-full border border-slate-200 bg-white px-3 py-2 shadow-sm transition hover:bg-slate-50 md:flex"
+            >
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-950 text-white">
+                <UserRound size={18} />
+              </div>
 
-            <div className="max-w-32">
-              <p className="truncate text-sm font-bold text-slate-900">
-                {user?.fullName || "Student"}
-              </p>
-              <p className="text-xs text-slate-500">{user?.role || "USER"}</p>
-            </div>
-          </Link>
+              <div className="max-w-32 text-left">
+                <p className="truncate text-sm font-bold text-slate-900">
+                  {user?.fullName || "Student"}
+                </p>
+                <p className="text-xs text-slate-500">{user?.role || "USER"}</p>
+              </div>
+            </button>
+
+            {userMenuOpen && (
+              <UserDropdown
+                user={user}
+                onClose={() => setUserMenuOpen(false)}
+                onLogout={handleLogout}
+              />
+            )}
+          </div>
         </div>
       </div>
     </header>
