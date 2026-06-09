@@ -17,4 +17,6 @@ public class ProjectMemberResponse {
     private Long projectId;
     private Long userId;
     private LocalDateTime joinedAt;
+
+    private UserProfileSummaryResponse userProfile;
 }

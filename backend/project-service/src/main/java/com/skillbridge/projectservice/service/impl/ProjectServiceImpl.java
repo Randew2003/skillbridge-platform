@@ -1,8 +1,10 @@
 package com.skillbridge.projectservice.service.impl;
 
+import com.skillbridge.projectservice.client.UserServiceClient;
 import com.skillbridge.projectservice.dto.request.ProjectRequest;
 import com.skillbridge.projectservice.dto.response.ProjectMemberResponse;
 import com.skillbridge.projectservice.dto.response.ProjectResponse;
+import com.skillbridge.projectservice.dto.response.UserProfileSummaryResponse;
 import com.skillbridge.projectservice.entity.Project;
 import com.skillbridge.projectservice.entity.ProjectMember;
 import com.skillbridge.projectservice.entity.ProjectStatus;
@@ -21,11 +23,14 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
     private final ProjectMemberRepository projectMemberRepository;
+    private final UserServiceClient userServiceClient;
 
     public ProjectServiceImpl(ProjectRepository projectRepository,
-                              ProjectMemberRepository projectMemberRepository) {
+                              ProjectMemberRepository projectMemberRepository,
+                              UserServiceClient userServiceClient) {
         this.projectRepository = projectRepository;
         this.projectMemberRepository = projectMemberRepository;
+        this.userServiceClient = userServiceClient;
     }
 
     @Override
@@ -48,7 +53,9 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectResponse getProjectById(Long id) {
         Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Project not found with id: " + id
+                ));
 
         return ProjectMapper.toProjectResponse(project);
     }
@@ -80,7 +87,9 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public List<ProjectMemberResponse> getProjectMembers(Long projectId) {
         if (!projectRepository.existsById(projectId)) {
-            throw new ResourceNotFoundException("Project not found with id: " + projectId);
+            throw new ResourceNotFoundException(
+                    "Project not found with id: " + projectId
+            );
         }
 
         return projectMemberRepository.findByProjectId(projectId)
@@ -92,7 +101,9 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectResponse updateProject(Long id, ProjectRequest request) {
         Project project = projectRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Project not found with id: " + id
+                ));
 
         project.setTitle(request.getTitle());
         project.setDescription(request.getDescription());
@@ -108,18 +119,24 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void deleteProject(Long id) {
         if (!projectRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Project not found with id: " + id);
+            throw new ResourceNotFoundException(
+                    "Project not found with id: " + id
+            );
         }
 
         projectRepository.deleteById(id);
     }
 
     private ProjectMemberResponse mapToProjectMemberResponse(ProjectMember member) {
+        UserProfileSummaryResponse userProfile =
+                userServiceClient.getUserProfileSummary(member.getUserId());
+
         return ProjectMemberResponse.builder()
                 .id(member.getId())
                 .projectId(member.getProjectId())
                 .userId(member.getUserId())
                 .joinedAt(member.getJoinedAt())
+                .userProfile(userProfile)
                 .build();
     }
 }
