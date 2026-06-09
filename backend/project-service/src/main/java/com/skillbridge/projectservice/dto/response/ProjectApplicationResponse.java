@@ -11,14 +11,36 @@ public class ProjectApplicationResponse {
     private String status;
     private LocalDateTime appliedAt;
 
-    public ProjectApplicationResponse(Long id, Long projectId, Long applicantId,
-                                      String message, String status, LocalDateTime appliedAt) {
+    private UserProfileSummaryResponse applicantProfile;
+
+    public ProjectApplicationResponse(Long id,
+                                      Long projectId,
+                                      Long applicantId,
+                                      String message,
+                                      String status,
+                                      LocalDateTime appliedAt) {
         this.id = id;
         this.projectId = projectId;
         this.applicantId = applicantId;
         this.message = message;
         this.status = status;
         this.appliedAt = appliedAt;
+    }
+
+    public ProjectApplicationResponse(Long id,
+                                      Long projectId,
+                                      Long applicantId,
+                                      String message,
+                                      String status,
+                                      LocalDateTime appliedAt,
+                                      UserProfileSummaryResponse applicantProfile) {
+        this.id = id;
+        this.projectId = projectId;
+        this.applicantId = applicantId;
+        this.message = message;
+        this.status = status;
+        this.appliedAt = appliedAt;
+        this.applicantProfile = applicantProfile;
     }
 
     public Long getId() {
@@ -43,5 +65,9 @@ public class ProjectApplicationResponse {
 
     public LocalDateTime getAppliedAt() {
         return appliedAt;
+    }
+
+    public UserProfileSummaryResponse getApplicantProfile() {
+        return applicantProfile;
     }
 }

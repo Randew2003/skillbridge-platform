@@ -1,7 +1,9 @@
 package com.skillbridge.projectservice.service.impl;
 
+import com.skillbridge.projectservice.client.UserServiceClient;
 import com.skillbridge.projectservice.dto.request.ProjectApplicationRequest;
 import com.skillbridge.projectservice.dto.response.ProjectApplicationResponse;
+import com.skillbridge.projectservice.dto.response.UserProfileSummaryResponse;
 import com.skillbridge.projectservice.entity.ApplicationStatus;
 import com.skillbridge.projectservice.entity.Project;
 import com.skillbridge.projectservice.entity.ProjectApplication;
@@ -9,7 +11,6 @@ import com.skillbridge.projectservice.entity.ProjectMember;
 import com.skillbridge.projectservice.event.NotificationEvent;
 import com.skillbridge.projectservice.event.ProjectEventProducer;
 import com.skillbridge.projectservice.exception.ResourceNotFoundException;
-import com.skillbridge.projectservice.mapper.ProjectMapper;
 import com.skillbridge.projectservice.repository.ProjectApplicationRepository;
 import com.skillbridge.projectservice.repository.ProjectMemberRepository;
 import com.skillbridge.projectservice.repository.ProjectRepository;
@@ -26,15 +27,18 @@ public class ProjectApplicationServiceImpl implements ProjectApplicationService 
     private final ProjectRepository projectRepository;
     private final ProjectMemberRepository projectMemberRepository;
     private final ProjectEventProducer projectEventProducer;
+    private final UserServiceClient userServiceClient;
 
     public ProjectApplicationServiceImpl(ProjectApplicationRepository projectApplicationRepository,
                                          ProjectRepository projectRepository,
                                          ProjectMemberRepository projectMemberRepository,
-                                         ProjectEventProducer projectEventProducer) {
+                                         ProjectEventProducer projectEventProducer,
+                                         UserServiceClient userServiceClient) {
         this.projectApplicationRepository = projectApplicationRepository;
         this.projectRepository = projectRepository;
         this.projectMemberRepository = projectMemberRepository;
         this.projectEventProducer = projectEventProducer;
+        this.userServiceClient = userServiceClient;
     }
 
     @Override
@@ -45,15 +49,32 @@ public class ProjectApplicationServiceImpl implements ProjectApplicationService 
                         "Project not found with id: " + request.getProjectId()
                 ));
 
+        UserProfileSummaryResponse applicant =
+                userServiceClient.getUserProfileSummary(request.getApplicantId());
+
+        if (applicant == null || Boolean.FALSE.equals(applicant.getActive())) {
+            throw new RuntimeException("Applicant user is not valid or inactive");
+        }
+
+        if (project.getOwnerId().equals(request.getApplicantId())) {
+            throw new RuntimeException("Project owner cannot apply to own project");
+        }
+
         boolean alreadyApplied = projectApplicationRepository
-                .existsByProjectIdAndApplicantId(request.getProjectId(), request.getApplicantId());
+                .existsByProjectIdAndApplicantId(
+                        request.getProjectId(),
+                        request.getApplicantId()
+                );
 
         if (alreadyApplied) {
             throw new RuntimeException("You have already applied to this project");
         }
 
         boolean alreadyMember = projectMemberRepository
-                .existsByProjectIdAndUserId(request.getProjectId(), request.getApplicantId());
+                .existsByProjectIdAndUserId(
+                        request.getProjectId(),
+                        request.getApplicantId()
+                );
 
         if (alreadyMember) {
             throw new RuntimeException("User is already a member of this project");
@@ -73,29 +94,35 @@ public class ProjectApplicationServiceImpl implements ProjectApplicationService 
                 new NotificationEvent(
                         project.getOwnerId(),
                         "New Project Application",
-                        "A user has applied to your project: " + project.getTitle(),
+                        applicant.getFullName() + " has applied to your project: " + project.getTitle(),
                         "PROJECT_APPLICATION_SUBMITTED"
                 )
         );
 
-        return ProjectMapper.toProjectApplicationResponse(savedApplication);
+        return mapToApplicationResponse(savedApplication);
     }
 
     @Override
     public List<ProjectApplicationResponse> getApplicationsByProject(Long projectId) {
 
+        if (!projectRepository.existsById(projectId)) {
+            throw new ResourceNotFoundException("Project not found with id: " + projectId);
+        }
+
         return projectApplicationRepository.findByProjectId(projectId)
                 .stream()
-                .map(ProjectMapper::toProjectApplicationResponse)
+                .map(this::mapToApplicationResponse)
                 .toList();
     }
 
     @Override
     public List<ProjectApplicationResponse> getApplicationsByApplicant(Long applicantId) {
 
+        userServiceClient.getUserProfileSummary(applicantId);
+
         return projectApplicationRepository.findByApplicantId(applicantId)
                 .stream()
-                .map(ProjectMapper::toProjectApplicationResponse)
+                .map(this::mapToApplicationResponse)
                 .toList();
     }
 
@@ -112,6 +139,13 @@ public class ProjectApplicationServiceImpl implements ProjectApplicationService 
                         "Project not found with id: " + application.getProjectId()
                 ));
 
+        UserProfileSummaryResponse applicant =
+                userServiceClient.getUserProfileSummary(application.getApplicantId());
+
+        if (applicant == null || Boolean.FALSE.equals(applicant.getActive())) {
+            throw new RuntimeException("Applicant user is not valid or inactive");
+        }
+
         if (application.getStatus() != ApplicationStatus.PENDING) {
             throw new RuntimeException("Only pending applications can be accepted");
         }
@@ -121,7 +155,10 @@ public class ProjectApplicationServiceImpl implements ProjectApplicationService 
         ProjectApplication savedApplication = projectApplicationRepository.save(application);
 
         boolean alreadyMember = projectMemberRepository
-                .existsByProjectIdAndUserId(application.getProjectId(), application.getApplicantId());
+                .existsByProjectIdAndUserId(
+                        application.getProjectId(),
+                        application.getApplicantId()
+                );
 
         if (!alreadyMember) {
             ProjectMember member = new ProjectMember();
@@ -142,7 +179,7 @@ public class ProjectApplicationServiceImpl implements ProjectApplicationService 
                 )
         );
 
-        return ProjectMapper.toProjectApplicationResponse(savedApplication);
+        return mapToApplicationResponse(savedApplication);
     }
 
     @Override
@@ -175,6 +212,21 @@ public class ProjectApplicationServiceImpl implements ProjectApplicationService 
                 )
         );
 
-        return ProjectMapper.toProjectApplicationResponse(savedApplication);
+        return mapToApplicationResponse(savedApplication);
+    }
+
+    private ProjectApplicationResponse mapToApplicationResponse(ProjectApplication application) {
+        UserProfileSummaryResponse applicantProfile =
+                userServiceClient.getUserProfileSummary(application.getApplicantId());
+
+        return new ProjectApplicationResponse(
+                application.getId(),
+                application.getProjectId(),
+                application.getApplicantId(),
+                application.getMessage(),
+                application.getStatus().name(),
+                application.getAppliedAt(),
+                applicantProfile
+        );
     }
 }
