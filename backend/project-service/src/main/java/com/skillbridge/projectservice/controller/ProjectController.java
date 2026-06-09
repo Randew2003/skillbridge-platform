@@ -1,8 +1,10 @@
 package com.skillbridge.projectservice.controller;
 
 import com.skillbridge.projectservice.dto.request.ProjectRequest;
+import com.skillbridge.projectservice.dto.response.ProjectApplicationResponse;
 import com.skillbridge.projectservice.dto.response.ProjectMemberResponse;
 import com.skillbridge.projectservice.dto.response.ProjectResponse;
+import com.skillbridge.projectservice.service.ProjectApplicationService;
 import com.skillbridge.projectservice.service.ProjectService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +17,12 @@ import java.util.List;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final ProjectApplicationService projectApplicationService;
 
-    public ProjectController(ProjectService projectService) {
+    public ProjectController(ProjectService projectService,
+                             ProjectApplicationService projectApplicationService) {
         this.projectService = projectService;
+        this.projectApplicationService = projectApplicationService;
     }
 
     @PostMapping
@@ -50,6 +55,15 @@ public class ProjectController {
             @PathVariable Long projectId
     ) {
         return ResponseEntity.ok(projectService.getProjectMembers(projectId));
+    }
+
+    @GetMapping("/{projectId}/applications")
+    public ResponseEntity<List<ProjectApplicationResponse>> getProjectApplications(
+            @PathVariable Long projectId
+    ) {
+        return ResponseEntity.ok(
+                projectApplicationService.getApplicationsByProject(projectId)
+        );
     }
 
     @PutMapping("/{id}")
