@@ -1,6 +1,7 @@
 package com.skillbridge.projectservice.controller;
 
 import com.skillbridge.projectservice.dto.request.ProjectRequest;
+import com.skillbridge.projectservice.dto.response.ProjectMemberResponse;
 import com.skillbridge.projectservice.dto.response.ProjectResponse;
 import com.skillbridge.projectservice.service.ProjectService;
 import jakarta.validation.Valid;
@@ -42,6 +43,13 @@ public class ProjectController {
     @GetMapping("/open")
     public ResponseEntity<List<ProjectResponse>> getOpenProjects() {
         return ResponseEntity.ok(projectService.getOpenProjects());
+    }
+
+    @GetMapping("/{projectId}/members")
+    public ResponseEntity<List<ProjectMemberResponse>> getProjectMembers(
+            @PathVariable Long projectId
+    ) {
+        return ResponseEntity.ok(projectService.getProjectMembers(projectId));
     }
 
     @PutMapping("/{id}")

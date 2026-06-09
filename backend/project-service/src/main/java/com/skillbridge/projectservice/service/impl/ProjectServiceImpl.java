@@ -1,11 +1,14 @@
 package com.skillbridge.projectservice.service.impl;
 
 import com.skillbridge.projectservice.dto.request.ProjectRequest;
+import com.skillbridge.projectservice.dto.response.ProjectMemberResponse;
 import com.skillbridge.projectservice.dto.response.ProjectResponse;
 import com.skillbridge.projectservice.entity.Project;
+import com.skillbridge.projectservice.entity.ProjectMember;
 import com.skillbridge.projectservice.entity.ProjectStatus;
 import com.skillbridge.projectservice.exception.ResourceNotFoundException;
 import com.skillbridge.projectservice.mapper.ProjectMapper;
+import com.skillbridge.projectservice.repository.ProjectMemberRepository;
 import com.skillbridge.projectservice.repository.ProjectRepository;
 import com.skillbridge.projectservice.service.ProjectService;
 import org.springframework.stereotype.Service;
@@ -17,9 +20,12 @@ import java.util.List;
 public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
+    private final ProjectMemberRepository projectMemberRepository;
 
-    public ProjectServiceImpl(ProjectRepository projectRepository) {
+    public ProjectServiceImpl(ProjectRepository projectRepository,
+                              ProjectMemberRepository projectMemberRepository) {
         this.projectRepository = projectRepository;
+        this.projectMemberRepository = projectMemberRepository;
     }
 
     @Override
@@ -72,6 +78,18 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public List<ProjectMemberResponse> getProjectMembers(Long projectId) {
+        if (!projectRepository.existsById(projectId)) {
+            throw new ResourceNotFoundException("Project not found with id: " + projectId);
+        }
+
+        return projectMemberRepository.findByProjectId(projectId)
+                .stream()
+                .map(this::mapToProjectMemberResponse)
+                .toList();
+    }
+
+    @Override
     public ProjectResponse updateProject(Long id, ProjectRequest request) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + id));
@@ -94,5 +112,14 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         projectRepository.deleteById(id);
+    }
+
+    private ProjectMemberResponse mapToProjectMemberResponse(ProjectMember member) {
+        return ProjectMemberResponse.builder()
+                .id(member.getId())
+                .projectId(member.getProjectId())
+                .userId(member.getUserId())
+                .joinedAt(member.getJoinedAt())
+                .build();
     }
 }
