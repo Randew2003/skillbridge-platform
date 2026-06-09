@@ -29,6 +29,11 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
+    @GetMapping("/{id}/profile-summary")
+    public ResponseEntity<UserResponse> getUserProfileSummary(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getUserProfileSummary(id));
+    }
+
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getMyProfile() {
         return ResponseEntity.ok(userService.getMyProfile());

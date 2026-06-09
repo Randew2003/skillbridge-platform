@@ -11,6 +11,8 @@ public interface UserService {
 
     UserResponse getUserById(Long id);
 
+    UserResponse getUserProfileSummary(Long id);
+
     UserResponse getMyProfile();
 
     UserResponse updateMyProfile(UpdateProfileRequest request);

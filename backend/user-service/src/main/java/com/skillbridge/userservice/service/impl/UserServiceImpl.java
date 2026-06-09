@@ -40,6 +40,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserResponse getUserProfileSummary(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "User not found with id: " + id
+                ));
+
+        if (Boolean.FALSE.equals(user.getActive())) {
+            throw new RuntimeException("User account is deactivated");
+        }
+
+        return mapToUserResponse(user);
+    }
+
+    @Override
     public UserResponse getMyProfile() {
         User currentUser = getCurrentAuthenticatedUser();
         return mapToUserResponse(currentUser);
