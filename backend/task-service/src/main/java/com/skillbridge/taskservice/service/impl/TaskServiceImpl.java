@@ -1,6 +1,8 @@
 package com.skillbridge.taskservice.service.impl;
 
+import com.skillbridge.taskservice.client.ProjectServiceClient;
 import com.skillbridge.taskservice.dto.request.TaskRequest;
+import com.skillbridge.taskservice.dto.response.ProjectMemberResponse;
 import com.skillbridge.taskservice.dto.response.TaskResponse;
 import com.skillbridge.taskservice.entity.Task;
 import com.skillbridge.taskservice.entity.TaskPriority;
@@ -21,27 +23,36 @@ public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
     private final TaskEventProducer taskEventProducer;
+    private final ProjectServiceClient projectServiceClient;
 
     public TaskServiceImpl(TaskRepository taskRepository,
-                           TaskEventProducer taskEventProducer) {
+                           TaskEventProducer taskEventProducer,
+                           ProjectServiceClient projectServiceClient) {
         this.taskRepository = taskRepository;
         this.taskEventProducer = taskEventProducer;
+        this.projectServiceClient = projectServiceClient;
     }
 
     @Override
     public TaskResponse createTask(TaskRequest request) {
-        Task task = new Task();
 
-        task.setTitle(request.getTitle());
-        task.setDescription(request.getDescription());
-        task.setProjectId(request.getProjectId());
-        task.setAssignedToUserId(request.getAssignedToUserId());
-        task.setCreatedByUserId(request.getCreatedByUserId());
-        task.setStatus(TaskStatus.TODO);
-        task.setPriority(parsePriority(request.getPriority()));
-        task.setDueDate(request.getDueDate());
-        task.setCreatedAt(LocalDateTime.now());
-        task.setUpdatedAt(LocalDateTime.now());
+        validateAssignedUserIsProjectMember(
+                request.getProjectId(),
+                request.getAssignedToUserId()
+        );
+
+        Task task = Task.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .projectId(request.getProjectId())
+                .assignedToUserId(request.getAssignedToUserId())
+                .createdByUserId(request.getCreatedByUserId())
+                .status(TaskStatus.TODO)
+                .priority(TaskPriority.valueOf(request.getPriority()))
+                .dueDate(request.getDueDate())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
 
         Task savedTask = taskRepository.save(task);
 
@@ -60,7 +71,9 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskResponse getTaskById(Long id) {
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Task not found with id: " + id
+                ));
 
         return TaskMapper.toTaskResponse(task);
     }
@@ -82,8 +95,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<TaskResponse> getTasksByAssignedUser(Long userId) {
-        return taskRepository.findByAssignedToUserId(userId)
+    public List<TaskResponse> getTasksByAssignedUser(Long assignedToUserId) {
+        return taskRepository.findByAssignedToUserId(assignedToUserId)
                 .stream()
                 .map(TaskMapper::toTaskResponse)
                 .toList();
@@ -91,15 +104,23 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public TaskResponse updateTask(Long id, TaskRequest request) {
+
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Task not found with id: " + id
+                ));
+
+        validateAssignedUserIsProjectMember(
+                request.getProjectId(),
+                request.getAssignedToUserId()
+        );
 
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
         task.setProjectId(request.getProjectId());
         task.setAssignedToUserId(request.getAssignedToUserId());
         task.setCreatedByUserId(request.getCreatedByUserId());
-        task.setPriority(parsePriority(request.getPriority()));
+        task.setPriority(TaskPriority.valueOf(request.getPriority()));
         task.setDueDate(request.getDueDate());
         task.setUpdatedAt(LocalDateTime.now());
 
@@ -110,12 +131,15 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public TaskResponse updateTaskStatus(Long id, String status) {
+
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Task not found with id: " + id
+                ));
 
-        TaskStatus newStatus = parseStatus(status);
+        TaskStatus taskStatus = TaskStatus.valueOf(status);
 
-        task.setStatus(newStatus);
+        task.setStatus(taskStatus);
         task.setUpdatedAt(LocalDateTime.now());
 
         Task updatedTask = taskRepository.save(task);
@@ -124,7 +148,7 @@ public class TaskServiceImpl implements TaskService {
                 new NotificationEvent(
                         updatedTask.getAssignedToUserId(),
                         "Task Status Updated",
-                        "Your task '" + updatedTask.getTitle() + "' status changed to " + updatedTask.getStatus(),
+                        "Task '" + updatedTask.getTitle() + "' status changed to " + updatedTask.getStatus(),
                         "TASK_STATUS_UPDATED"
                 )
         );
@@ -134,34 +158,26 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public void deleteTask(Long id) {
+
         if (!taskRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Task not found with id: " + id);
+            throw new ResourceNotFoundException(
+                    "Task not found with id: " + id
+            );
         }
 
         taskRepository.deleteById(id);
     }
 
-    private TaskPriority parsePriority(String priority) {
-        if (priority == null || priority.isBlank()) {
-            return TaskPriority.MEDIUM;
-        }
+    private void validateAssignedUserIsProjectMember(Long projectId, Long assignedToUserId) {
 
-        try {
-            return TaskPriority.valueOf(priority.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid priority. Use LOW, MEDIUM, or HIGH");
-        }
-    }
+        List<ProjectMemberResponse> projectMembers =
+                projectServiceClient.getProjectMembers(projectId);
 
-    private TaskStatus parseStatus(String status) {
-        if (status == null || status.isBlank()) {
-            throw new RuntimeException("Status is required");
-        }
+        boolean isProjectMember = projectMembers.stream()
+                .anyMatch(member -> member.getUserId().equals(assignedToUserId));
 
-        try {
-            return TaskStatus.valueOf(status.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid status. Use TODO, IN_PROGRESS, or COMPLETED");
+        if (!isProjectMember) {
+            throw new RuntimeException("Assigned user is not a member of this project");
         }
     }
 }
