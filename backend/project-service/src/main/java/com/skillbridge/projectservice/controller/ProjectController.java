@@ -26,13 +26,10 @@ public class ProjectController {
     }
 
     @PostMapping
-    public ResponseEntity<ProjectResponse> createProject(@Valid @RequestBody ProjectRequest request) {
+    public ResponseEntity<ProjectResponse> createProject(
+            @Valid @RequestBody ProjectRequest request
+    ) {
         return ResponseEntity.ok(projectService.createProject(request));
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ProjectResponse> getProjectById(@PathVariable Long id) {
-        return ResponseEntity.ok(projectService.getProjectById(id));
     }
 
     @GetMapping
@@ -40,8 +37,15 @@ public class ProjectController {
         return ResponseEntity.ok(projectService.getAllProjects());
     }
 
+    @GetMapping("/my-projects")
+    public ResponseEntity<List<ProjectResponse>> getMyProjects() {
+        return ResponseEntity.ok(projectService.getMyProjects());
+    }
+
     @GetMapping("/owner/{ownerId}")
-    public ResponseEntity<List<ProjectResponse>> getProjectsByOwner(@PathVariable Long ownerId) {
+    public ResponseEntity<List<ProjectResponse>> getProjectsByOwner(
+            @PathVariable Long ownerId
+    ) {
         return ResponseEntity.ok(projectService.getProjectsByOwner(ownerId));
     }
 
@@ -66,6 +70,13 @@ public class ProjectController {
         );
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ProjectResponse> getProjectById(
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(projectService.getProjectById(id));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<ProjectResponse> updateProject(
             @PathVariable Long id,
@@ -75,7 +86,9 @@ public class ProjectController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteProject(@PathVariable Long id) {
+    public ResponseEntity<String> deleteProject(
+            @PathVariable Long id
+    ) {
         projectService.deleteProject(id);
         return ResponseEntity.ok("Project deleted successfully");
     }
