@@ -49,21 +49,18 @@ public class ProjectApplicationServiceImpl implements ProjectApplicationService 
                         "Project not found with id: " + request.getProjectId()
                 ));
 
-        UserProfileSummaryResponse applicant =
-                userServiceClient.getUserProfileSummary(request.getApplicantId());
+        UserProfileSummaryResponse applicant = getCurrentActiveUser();
 
-        if (applicant == null || Boolean.FALSE.equals(applicant.getActive())) {
-            throw new RuntimeException("Applicant user is not valid or inactive");
-        }
+        Long applicantId = applicant.getId();
 
-        if (project.getOwnerId().equals(request.getApplicantId())) {
+        if (project.getOwnerId().equals(applicantId)) {
             throw new RuntimeException("Project owner cannot apply to own project");
         }
 
         boolean alreadyApplied = projectApplicationRepository
                 .existsByProjectIdAndApplicantId(
                         request.getProjectId(),
-                        request.getApplicantId()
+                        applicantId
                 );
 
         if (alreadyApplied) {
@@ -73,7 +70,7 @@ public class ProjectApplicationServiceImpl implements ProjectApplicationService 
         boolean alreadyMember = projectMemberRepository
                 .existsByProjectIdAndUserId(
                         request.getProjectId(),
-                        request.getApplicantId()
+                        applicantId
                 );
 
         if (alreadyMember) {
@@ -83,7 +80,7 @@ public class ProjectApplicationServiceImpl implements ProjectApplicationService 
         ProjectApplication application = new ProjectApplication();
 
         application.setProjectId(request.getProjectId());
-        application.setApplicantId(request.getApplicantId());
+        application.setApplicantId(applicantId);
         application.setMessage(request.getMessage());
         application.setStatus(ApplicationStatus.PENDING);
         application.setAppliedAt(LocalDateTime.now());
@@ -105,8 +102,15 @@ public class ProjectApplicationServiceImpl implements ProjectApplicationService 
     @Override
     public List<ProjectApplicationResponse> getApplicationsByProject(Long projectId) {
 
-        if (!projectRepository.existsById(projectId)) {
-            throw new ResourceNotFoundException("Project not found with id: " + projectId);
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Project not found with id: " + projectId
+                ));
+
+        UserProfileSummaryResponse currentUser = getCurrentActiveUser();
+
+        if (!project.getOwnerId().equals(currentUser.getId())) {
+            throw new RuntimeException("Only project owner can view applications");
         }
 
         return projectApplicationRepository.findByProjectId(projectId)
@@ -118,7 +122,11 @@ public class ProjectApplicationServiceImpl implements ProjectApplicationService 
     @Override
     public List<ProjectApplicationResponse> getApplicationsByApplicant(Long applicantId) {
 
-        userServiceClient.getUserProfileSummary(applicantId);
+        UserProfileSummaryResponse currentUser = getCurrentActiveUser();
+
+        if (!currentUser.getId().equals(applicantId)) {
+            throw new RuntimeException("You can only view your own applications");
+        }
 
         return projectApplicationRepository.findByApplicantId(applicantId)
                 .stream()
@@ -138,6 +146,12 @@ public class ProjectApplicationServiceImpl implements ProjectApplicationService 
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Project not found with id: " + application.getProjectId()
                 ));
+
+        UserProfileSummaryResponse currentUser = getCurrentActiveUser();
+
+        if (!project.getOwnerId().equals(currentUser.getId())) {
+            throw new RuntimeException("Only project owner can accept applications");
+        }
 
         UserProfileSummaryResponse applicant =
                 userServiceClient.getUserProfileSummary(application.getApplicantId());
@@ -195,6 +209,12 @@ public class ProjectApplicationServiceImpl implements ProjectApplicationService 
                         "Project not found with id: " + application.getProjectId()
                 ));
 
+        UserProfileSummaryResponse currentUser = getCurrentActiveUser();
+
+        if (!project.getOwnerId().equals(currentUser.getId())) {
+            throw new RuntimeException("Only project owner can reject applications");
+        }
+
         if (application.getStatus() != ApplicationStatus.PENDING) {
             throw new RuntimeException("Only pending applications can be rejected");
         }
@@ -215,7 +235,19 @@ public class ProjectApplicationServiceImpl implements ProjectApplicationService 
         return mapToApplicationResponse(savedApplication);
     }
 
+    private UserProfileSummaryResponse getCurrentActiveUser() {
+
+        UserProfileSummaryResponse currentUser = userServiceClient.getCurrentUser();
+
+        if (currentUser == null || Boolean.FALSE.equals(currentUser.getActive())) {
+            throw new RuntimeException("User is not valid or inactive");
+        }
+
+        return currentUser;
+    }
+
     private ProjectApplicationResponse mapToApplicationResponse(ProjectApplication application) {
+
         UserProfileSummaryResponse applicantProfile =
                 userServiceClient.getUserProfileSummary(application.getApplicantId());
 
