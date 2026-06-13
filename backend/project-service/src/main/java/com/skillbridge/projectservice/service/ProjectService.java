@@ -16,6 +16,8 @@ public interface ProjectService {
 
     List<ProjectResponse> getProjectsByOwner(Long ownerId);
 
+    List<ProjectResponse> getMyProjects();
+
     List<ProjectResponse> getOpenProjects();
 
     List<ProjectMemberResponse> getProjectMembers(Long projectId);
