@@ -35,23 +35,32 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectResponse createProject(ProjectRequest request) {
+
+        UserProfileSummaryResponse currentUser = userServiceClient.getCurrentUser();
+
+        if (currentUser == null || Boolean.FALSE.equals(currentUser.getActive())) {
+            throw new RuntimeException("Project owner is not valid or inactive");
+        }
+
         Project project = Project.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .category(request.getCategory())
                 .maxMembers(request.getMaxMembers())
-                .ownerId(request.getOwnerId())
+                .ownerId(currentUser.getId())
                 .status(ProjectStatus.OPEN)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
 
         Project savedProject = projectRepository.save(project);
+
         return ProjectMapper.toProjectResponse(savedProject);
     }
 
     @Override
     public ProjectResponse getProjectById(Long id) {
+
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Project not found with id: " + id
@@ -62,6 +71,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public List<ProjectResponse> getAllProjects() {
+
         return projectRepository.findAll()
                 .stream()
                 .map(ProjectMapper::toProjectResponse)
@@ -70,6 +80,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public List<ProjectResponse> getProjectsByOwner(Long ownerId) {
+
         return projectRepository.findByOwnerId(ownerId)
                 .stream()
                 .map(ProjectMapper::toProjectResponse)
@@ -77,7 +88,23 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public List<ProjectResponse> getMyProjects() {
+
+        UserProfileSummaryResponse currentUser = userServiceClient.getCurrentUser();
+
+        if (currentUser == null || Boolean.FALSE.equals(currentUser.getActive())) {
+            throw new RuntimeException("User is not valid or inactive");
+        }
+
+        return projectRepository.findByOwnerId(currentUser.getId())
+                .stream()
+                .map(ProjectMapper::toProjectResponse)
+                .toList();
+    }
+
+    @Override
     public List<ProjectResponse> getOpenProjects() {
+
         return projectRepository.findByStatus(ProjectStatus.OPEN)
                 .stream()
                 .map(ProjectMapper::toProjectResponse)
@@ -86,6 +113,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public List<ProjectMemberResponse> getProjectMembers(Long projectId) {
+
         if (!projectRepository.existsById(projectId)) {
             throw new ResourceNotFoundException(
                     "Project not found with id: " + projectId
@@ -100,34 +128,56 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectResponse updateProject(Long id, ProjectRequest request) {
+
+        UserProfileSummaryResponse currentUser = userServiceClient.getCurrentUser();
+
+        if (currentUser == null || Boolean.FALSE.equals(currentUser.getActive())) {
+            throw new RuntimeException("User is not valid or inactive");
+        }
+
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Project not found with id: " + id
                 ));
 
+        if (!project.getOwnerId().equals(currentUser.getId())) {
+            throw new RuntimeException("Only project owner can update this project");
+        }
+
         project.setTitle(request.getTitle());
         project.setDescription(request.getDescription());
         project.setCategory(request.getCategory());
         project.setMaxMembers(request.getMaxMembers());
-        project.setOwnerId(request.getOwnerId());
         project.setUpdatedAt(LocalDateTime.now());
 
         Project updatedProject = projectRepository.save(project);
+
         return ProjectMapper.toProjectResponse(updatedProject);
     }
 
     @Override
     public void deleteProject(Long id) {
-        if (!projectRepository.existsById(id)) {
-            throw new ResourceNotFoundException(
-                    "Project not found with id: " + id
-            );
+
+        UserProfileSummaryResponse currentUser = userServiceClient.getCurrentUser();
+
+        if (currentUser == null || Boolean.FALSE.equals(currentUser.getActive())) {
+            throw new RuntimeException("User is not valid or inactive");
         }
 
-        projectRepository.deleteById(id);
+        Project project = projectRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Project not found with id: " + id
+                ));
+
+        if (!project.getOwnerId().equals(currentUser.getId())) {
+            throw new RuntimeException("Only project owner can delete this project");
+        }
+
+        projectRepository.delete(project);
     }
 
     private ProjectMemberResponse mapToProjectMemberResponse(ProjectMember member) {
+
         UserProfileSummaryResponse userProfile =
                 userServiceClient.getUserProfileSummary(member.getUserId());
 
